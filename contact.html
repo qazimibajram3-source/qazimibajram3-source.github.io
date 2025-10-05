@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />                   
+		<meta name="description" content="Contactez LT Montage Sàrl pour vos projets de menuiserie. Devis gratuit." />
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="styles.css">
+		<title>Contact - LT Montage Sàrl</title>
+	</head>
+	<body>
+		<header class="site-header">
+			<div class="container header-inner">
+				<a class="brand" href="Index.html">LT Montage Sàrl</a>
+				<nav class="nav" id="mainNav">
+					<ul>
+						<li><a href="Index.html">Accueil</a></li>
+						<li><a href="Index.html#services">Services</a></li>
+						<li><a href="Index.html#projects">Réalisations</a></li>
+						<li><a href="about.html">À propos</a></li>
+						<li><a href="contact.html">Contact</a></li>
+					</ul>
+				</nav> 
+				<button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+			</div>
+		</header>
+
+		<main>
+			<section class="container contact">
+				<h1>Contact & demande de devis</h1>
+				
+				<div style="margin: 2rem 0;">
+					<h2>Parlons de votre projet</h2>
+					<p>Que vous ayez un projet précis en tête ou simplement une idée à développer, nous sommes là pour vous accompagner. N'hésitez pas à nous contacter pour discuter de vos besoins et obtenir un devis personnalisé.</p>
+				</div>
+
+				<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin: 3rem 0;" class="contact-grid">
+					<div>
+						<h3>Informations de contact</h3>
+						<div style="margin: 1rem 0;">
+							<p><strong>Téléphone :</strong><br>
+							<a href="tel:0600000000">06 00 00 00 00</a></p>
+						</div>
+						
+						<div style="margin: 1rem 0;">
+							<p><strong>Email :</strong><br>
+							<a href="mailto:contact@menuiserie.local">contact@menuiserie.local</a></p>
+						</div>
+						
+						<div style="margin: 1rem 0;">
+							<p><strong>Horaires d'atelier :</strong><br>
+							Lundi - Vendredi : 8h00 - 17h00<br>
+							Samedi : 8h00 - 12h00<br>
+							Dimanche : Fermé</p>
+						</div>
+
+						<div style="margin: 2rem 0;">
+							<h4>Pourquoi nous choisir ?</h4>
+							<ul>
+								<li>✓ Devis gratuit et sans engagement</li>
+								<li>✓ Conseils personnalisés</li>
+								<li>✓ Matériaux de qualité</li>
+								<li>✓ Respect des délais</li>
+								<li>✓ Garantie sur tous nos travaux</li>
+							</ul>
+						</div>
+					</div>
+
+					<div>
+						<h3>Formulaire de contact</h3>
+						<form id="contactForm" class="contact-form">
+							<div class="row">
+								<label>Nom *
+									<input type="text" name="nom" id="nom" required />
+								</label>
+								<label>Prénom *
+									<input type="text" name="prenom" id="prenom" required />
+								</label>
+							</div>
+							<div class="row">
+								<label>Téléphone *
+									<input type="tel" name="telephone" id="telephone" required placeholder="076 000 000 00"/>
+								</label>
+								<label>Email
+									<input type="email" name="email" id="email" placeholder="votre@email.com"/>
+								</label>
+							</div>
+							<label>Adresse / Lieu du projet *
+								<input type="text" name="adresse" id="adresse" required placeholder="Adresse numéro, code postal ville"/>
+							</label>
+							<label>Type de projet *
+								<select name="type_projet" id="type_projet" required>
+									<option value="">Choisissez le type de projet</option>
+									<option value="Fabrication sur mesure">Fabrication sur mesure</option>
+									<option value="Rénovation & restauration">Rénovation & restauration</option>
+									<option value="Pose & installation">Pose & installation</option>
+									<option value="Conseil & design">Conseil & design</option>
+									<option value="Autre">Autre</option>
+								</select>
+							</label>
+							<label>Message / Description du projet *
+								<textarea name="message" id="message" rows="6" required placeholder="Décrivez votre projet : dimensions approximatives, matériaux souhaités, délais, budget indicatif..."></textarea>
+							</label>
+							<div class="form-actions">
+								<button type="submit" class="btn">Envoyer la demande</button>
+								<button type="reset" class="btn ghost">Réinitialiser</button>
+							</div>
+							<p id="formMessage" class="form-message" aria-live="polite"></p>
+						</form>
+					</div>
+				</div>
+
+				<div style="margin: 3rem 0; padding: 2rem; background: #f8f8f8; border-radius: 8px;">
+					<h3>Processus de collaboration</h3>
+					<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1rem;">
+						<div style="text-align: center;">
+							<div style="background: #007cba; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-weight: bold;">1</div>
+							<h4>Contact</h4>
+							<p>Prise de contact et première discussion de votre projet</p>
+						</div>
+						<div style="text-align: center;">
+							<div style="background: #007cba; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-weight: bold;">2</div>
+							<h4>Étude</h4>
+							<p>Visite sur site si nécessaire et étude technique détaillée</p>
+						</div>
+						<div style="text-align: center;">
+							<div style="background: #007cba; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-weight: bold;">3</div>
+							<h4>Devis</h4>
+							<p>Proposition détaillée avec plans si nécessaire</p>
+						</div>
+						<div style="text-align: center;">
+							<div style="background: #007cba; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-weight: bold;">4</div>
+							<h4>Réalisation</h4>
+							<p>Fabrication en atelier et pose sur site</p>
+						</div>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<footer class="site-footer">
+			<div class="container footer-inner">
+				<p>© <span id="year"></span> LT Montage Sàrl — Tous droits réservés</p>
+				<p><a href="mailto:contact@menuiserie.local">contact@menuiserie.local</a> · Tél: 06 00 00 00 00</p>
+			</div>
+		</footer>
+
+		<script src="auth.js"></script>
+		<script src="script.js"></script>
+	</body>
+</html>

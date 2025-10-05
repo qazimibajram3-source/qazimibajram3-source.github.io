@@ -1,0 +1,148 @@
+
+<!doctype html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" co                   
+		<meta name="description" content="LT Montage Sàrl : fabrication, restauration, pose et rénovation en bois sur mesure." />
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="styles.css">
+		<title>LT Montage Sàrl - Services de menuiserie</title>
+	</head>
+	<body>
+		<header class="site-header">
+			<div class="container header-inner">
+				<a class="brand" href="#">LT Montage Sàrl</a>
+				<nav class="nav" id="mainNav">
+					<ul>
+						<li><a href="Index.html">Accueil</a></li>
+						<li><a href="#services">Services</a></li>
+						<li><a href="#projects">Réalisations</a></li>
+						<li><a href="about.html">À propos</a></li>
+						<li><a href="contact.html">Contact</a></li>
+					</ul>
+				</nav>
+				<button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+			</div>
+		</header>
+
+		<main>
+			<section class="hero">
+				<div class="container hero-grid">
+					<div>
+						<h1>Travail du bois sur mesure</h1>
+						<p>Fabrication, rénovation et pose — meubles, portes, fenêtres, escaliers et plus. Artisan local, travail soigné et matériaux durables.</p>
+						<p class="hero-cta">
+							<a class="btn" href="#contact">Demander un devis</a>
+							<a class="btn ghost" href="#services">Voir les services</a>
+						</p>
+					</div>
+					<div class="hero-art">
+						<img src="hero.svg" alt="Illustration menuiserie" />
+					</div>
+				</div>
+			</section>
+
+			<section id="services" class="container services">
+				<h2>Nos services</h2>
+				<p class="lede">Des solutions complètes pour tous vos projets en bois — du sur-mesure à la restauration.</p>
+				<div class="services-grid">
+					<article class="card">
+						<h3>Fabrication sur mesure</h3>
+						<p>Meubles, placards, bibliothèques et éléments décoratifs créés selon vos plans et vos envies.</p>
+					</article>
+
+					<article class="card">
+						<h3>Rénovation & restauration</h3>
+						<p>Remise à neuf de meubles anciens, portes, volets et boiseries avec respect des matériaux.</p>
+					</article>
+
+					<article class="card">
+						<h3>Pose & installation</h3>
+						<p>Pose de portes, fenêtres, escaliers et cuisines — ajustement précis et finitions propres.</p>
+					</article>
+
+					<article class="card">
+						<h3>Conseil & design</h3>
+						<p>Accompagnement de l'idée au plan : choix des essences, finitions et optimisation de l'espace.</p>
+					</article>
+				</div>
+			</section>
+
+			<section id="projects" class="container projects">
+				<h2>Quelques réalisations</h2>
+				<div class="gallery">
+					<div class="thumb">Projet 1</div>
+					<div class="thumb">Projet 2</div>
+					<div class="thumb">Projet 3</div>
+					<div class="thumb">Projet 4</div>
+				</div>
+			</section>
+
+			<section id="about" class="container about">
+				<h2>À propos</h2>
+				<p>Artisan menuisier avec plusieurs années d'expérience, j'apporte une attention particulière à la qualité et à la durabilité des ouvrages. Travail en atelier et sur chantier.</p>
+				<ul>
+					<li>Devis gratuit</li>
+					<li>Matériaux locaux et certifiés</li>
+					<li>Garantie sur travaux</li>
+				</ul>
+			</section>
+
+			<section id="contact" class="container contact">
+				<h2>Contact & demande de devis</h2>
+				<form id="contactForm" class="contact-form">
+					<div class="row">
+						<label>Nom *
+							<input type="text" name="nom" id="nom" required />
+						</label>
+						<label>Prénom *
+							<input type="text" name="prenom" id="prenom" required />
+						</label>
+					</div>
+					<div class="row">
+						<label>Téléphone *
+							<input type="tel" name="telephone" id="telephone" required placeholder="076 000 000 00"/>
+						</label>
+						<label>Email
+							<input type="email" name="email" id="email" placeholder="votre@email.com"/>
+						</label>
+					</div>
+					<label>Adresse / Lieu du projet *
+						<input type="text" name="adresse" id="adresse" required placeholder="Adresse numéro, code postal ville"/>
+					</label>
+					<label>Type de projet *
+						<select name="type_projet" id="type_projet" required>
+							<option value="">Choisissez le type de projet</option>
+							<option value="Fabrication sur mesure">Fabrication sur mesure</option>
+							<option value="Rénovation & restauration">Rénovation & restauration</option>
+							<option value="Pose & installation">Pose & installation</option>
+							<option value="Conseil & design">Conseil & design</option>
+							<option value="Autre">Autre</option>
+						</select>
+					</label>
+					<label>Message / Description du projet *
+						<textarea name="message" id="message" rows="6" required placeholder="Décrivez votre projet en détail..."></textarea>
+					</label>
+					<div class="form-actions">
+						<button type="submit" class="btn">Envoyer</button>
+						<button type="reset" class="btn ghost">Réinitialiser</button>
+					</div>
+					<p id="formMessage" class="form-message" aria-live="polite"></p>
+				</form>
+			</section>
+		</main>
+
+		<footer class="site-footer">
+			<div class="container footer-inner">
+				<p>© <span id="year"></span> LT Montage Sàrl — Tous droits réservés</p>
+				<p><a href="mailto:contact@menuiserie.local">contact@menuiserie.local</a> · Tél: 06 00 00 00 00</p>
+			</div>
+		</footer>
+
+		<script src="auth.js"></script>
+		<script src="script.js"></script>
+	</body>
+</html>

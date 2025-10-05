@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-label="Illustration menuiserie">
+  <defs>
+    <linearGradient id="g1" x1="0" x2="1">
+      <stop offset="0%" stop-color="#fffaf7"/>
+      <stop offset="100%" stop-color="#f3efe9"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" rx="12" fill="url(#g1)" />
+  <g transform="translate(48,36)">
+    <rect x="0" y="0" width="260" height="180" rx="12" fill="#fff" stroke="#efe6dd" />
+    <rect x="16" y="16" width="228" height="48" rx="8" fill="#fff8f4" stroke="#f0e6db" />
+    <rect x="16" y="80" width="100" height="76" rx="8" fill="#fff" stroke="#efe6dd" />
+    <rect x="144" y="80" width="100" height="76" rx="8" fill="#fff" stroke="#efe6dd" />
+
+    <g transform="translate(320,8)">
+      <path d="M8 144 L78 8 L148 144 Z" fill="#f4e9df" stroke="#e6d9c8" stroke-width="2"/>
+      <rect x="-12" y="144" width="172" height="48" rx="10" fill="#fff" stroke="#efe6dd" />
+      <circle cx="72" cy="80" r="8" fill="#8b5e3c" />
+    </g>
+  </g>
+
+  <g transform="translate(40,320)">
+    <rect x="0" y="-22" width="420" height="36" rx="8" fill="#fff" opacity="0.6" />
+    <text x="12" y="6" font-size="18" fill="#8b5e3c" font-family="Merriweather, serif">Menuiserie — Travail du bois</text>
+  </g>
+</svg>

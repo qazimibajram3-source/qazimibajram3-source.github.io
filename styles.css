@@ -683,7 +683,7 @@ body{
 
 .process-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
   margin-top: 2rem;
 }
@@ -718,12 +718,26 @@ body{
   line-height: 1.5;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .process-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
   }
+}
+
+@media (max-width: 576px) {
+  .process-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
   
+  .process-section {
+    padding: 1.5rem;
+    margin: 2rem 0;
+  }
+}
+
+@media (max-width: 768px) {
   .process-number {
     width: 40px;
     height: 40px;

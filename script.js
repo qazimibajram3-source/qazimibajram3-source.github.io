@@ -1,3 +1,26 @@
+// Carrousel d'images hero
+function initHeroCarousel() {
+	const images = document.querySelectorAll('.hero-background-image');
+	let currentIndex = 0;
+
+	function showNextImage() {
+		// Masquer l'image actuelle
+		images[currentIndex].classList.remove('active');
+		
+		// Passer à l'image suivante
+		currentIndex = (currentIndex + 1) % images.length;
+		
+		// Afficher la nouvelle image
+		images[currentIndex].classList.add('active');
+	}
+
+	// Changer d'image toutes les 5 secondes
+	setInterval(showNextImage, 5000);
+}
+
+// Initialiser le carrousel quand la page est chargée
+document.addEventListener('DOMContentLoaded', initHeroCarousel);
+
 document.addEventListener('DOMContentLoaded', function() {
     // Protection globale contre les doubles soumissions
     if (window.formHandlerLoaded) {

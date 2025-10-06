@@ -682,14 +682,18 @@ body{
 }
 
 .process-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 2rem;
   margin-top: 2rem;
+  justify-content: space-between;
 }
 
 .process-step {
   text-align: center;
+  flex: 1;
+  min-width: 200px;
+  max-width: 250px;
 }
 
 .process-number {
@@ -719,16 +723,22 @@ body{
 }
 
 @media (max-width: 992px) {
-  .process-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
+  .process-step {
+    flex: 1 1 calc(50% - 1rem);
+    min-width: 180px;
   }
 }
 
 @media (max-width: 576px) {
   .process-grid {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     gap: 1.5rem;
+  }
+  
+  .process-step {
+    flex: 1;
+    min-width: auto;
+    max-width: none;
   }
   
   .process-section {

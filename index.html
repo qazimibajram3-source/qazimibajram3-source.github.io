@@ -3,7 +3,7 @@
 <html lang="fr">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" co                   
+		<meta name="viewport" content="width=device-width, initial-scale=1" />                   
 		<meta name="description" content="LT Montage Sàrl : fabrication, restauration, pose et rénovation en bois sur mesure." />
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,25 +29,23 @@
 		</header>
 
 		<main>
-			<section class="hero">
-				<div class="container hero-grid">
-					<div>
+			<section class="hero main-hero">
+				<div class="container">
+					<div class="hero-content">
 						<h1>Travail du bois sur mesure</h1>
-						<p>Fabrication, rénovation et pose — meubles, portes, fenêtres, escaliers et plus. Artisan local, travail soigné et matériaux durables.</p>
-						<p class="hero-cta">
+						<p class="lede">Fabrication, rénovation et pose — meubles, portes, fenêtres, escaliers et plus. Artisan local, travail soigné et matériaux durables.</p>
+						<div class="hero-cta">
 							<a class="btn" href="#contact">Demander un devis</a>
 							<a class="btn ghost" href="#services">Voir les services</a>
-						</p>
-					</div>
-					<div class="hero-art">
-						<img src="hero.svg" alt="Illustration menuiserie" />
+						</div>
 					</div>
 				</div>
 			</section>
 
-			<section id="services" class="container services">
-				<h2>Nos services</h2>
-				<p class="lede">Des solutions complètes pour tous vos projets en bois — du sur-mesure à la restauration.</p>
+			<section id="services" class="services">
+				<div class="container">
+					<h2>Nos services</h2>
+					<p class="lede">Des solutions complètes pour tous vos projets en bois — du sur-mesure à la restauration.</p>
 				<div class="services-grid">
 					<article class="card">
 						<h3>Fabrication sur mesure</h3>
@@ -71,29 +69,34 @@
 				</div>
 			</section>
 
-			<section id="projects" class="container projects">
-				<h2>Quelques réalisations</h2>
-				<div class="gallery">
-					<div class="thumb">Projet 1</div>
-					<div class="thumb">Projet 2</div>
-					<div class="thumb">Projet 3</div>
-					<div class="thumb">Projet 4</div>
+			<section id="projects" class="projects">
+				<div class="container">
+					<h2>Quelques réalisations</h2>
+					<div class="gallery">
+						<div class="thumb">Projet 1</div>
+						<div class="thumb">Projet 2</div>
+						<div class="thumb">Projet 3</div>
+						<div class="thumb">Projet 4</div>
+					</div>
 				</div>
 			</section>
 
-			<section id="about" class="container about">
-				<h2>À propos</h2>
-				<p>Artisan menuisier avec plusieurs années d'expérience, j'apporte une attention particulière à la qualité et à la durabilité des ouvrages. Travail en atelier et sur chantier.</p>
-				<ul>
-					<li>Devis gratuit</li>
-					<li>Matériaux locaux et certifiés</li>
-					<li>Garantie sur travaux</li>
-				</ul>
+			<section id="about" class="about">
+				<div class="container">
+					<h2>À propos</h2>
+					<p>Artisan menuisier avec plusieurs années d'expérience, j'apporte une attention particulière à la qualité et à la durabilité des ouvrages. Travail en atelier et sur chantier.</p>
+					<ul>
+						<li>Devis gratuit</li>
+						<li>Matériaux locaux et certifiés</li>
+						<li>Garantie sur travaux</li>
+					</ul>
+				</div>
 			</section>
 
-			<section id="contact" class="container contact">
-				<h2>Contact & demande de devis</h2>
-				<form id="contactForm" class="contact-form">
+			<section id="contact" class="contact">
+				<div class="container">
+					<h2>Contact & demande de devis</h2>
+					<form id="contactForm" class="contact-form">
 					<div class="row">
 						<label>Nom *
 							<input type="text" name="nom" id="nom" required />
@@ -107,7 +110,7 @@
 							<input type="tel" name="telephone" id="telephone" required placeholder="076 000 000 00"/>
 						</label>
 						<label>Email *
-							<input type="email" name="email" id="email" required="votre@email.com"/>
+							<input type="email" name="email" id="email" required placeholder="votre@email.com"/>
 						</label>
 					</div>
 					<label>Adresse / Lieu du projet *
@@ -132,6 +135,7 @@
 					</div>
 					<p id="formMessage" class="form-message" aria-live="polite"></p>
 				</form>
+				</div>
 			</section>
 		</main>
 

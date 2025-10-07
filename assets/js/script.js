@@ -18,10 +18,43 @@ function initHeroCarousel() {
 	setInterval(showNextImage, 5000);
 }
 
-// Initialiser le carrousel quand la page est chargée
-document.addEventListener('DOMContentLoaded', initHeroCarousel);
+// Défilement fluide personnalisé avec durée plus longue
+function initSmoothScroll() {
+	// Sélectionner tous les liens d'ancrage
+	const anchorLinks = document.querySelectorAll('a[href^="#"]');
+	
+	anchorLinks.forEach(link => {
+		link.addEventListener('click', function(e) {
+			e.preventDefault();
+			
+			const targetId = this.getAttribute('href').substring(1);
+			const targetElement = document.getElementById(targetId);
+			
+			if (targetElement) {
+				// Défilement fluide avec durée personnalisée (1.5 secondes)
+				targetElement.scrollIntoView({
+					behavior: 'smooth',
+					block: 'start',
+					inline: 'nearest'
+				});
+				
+				// Alternative avec une animation plus contrôlée
+				const headerHeight = 80; // Hauteur du header sticky
+				const targetPosition = targetElement.offsetTop - headerHeight;
+				
+				window.scrollTo({
+					top: targetPosition,
+					behavior: 'smooth'
+				});
+			}
+		});
+	});
+}
 
+// Initialiser le carrousel et le smooth scroll quand la page est chargée
 document.addEventListener('DOMContentLoaded', function() {
+	initHeroCarousel();
+	initSmoothScroll();
     // Protection globale contre les doubles soumissions
     if (window.formHandlerLoaded) {
         console.log('Gestionnaire de formulaire déjà chargé, évitement du double chargement');

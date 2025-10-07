@@ -17,9 +17,27 @@
 }
 
 *{box-sizing:border-box}
+html{
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* Compense la hauteur du header sticky */
+}
+
+/* Transition personnalisée pour un défilement plus lent */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  * {
+    scroll-behavior: smooth;
+    scroll-snap-type: y proximity;
+  }
+}
+
 html,body{height:100%}
 body{
   margin:0;
+  padding-top: 80px; /* Compense le header fixe */
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   background: linear-gradient(180deg,var(--bg), #F7F6F5 120%);
   color:var(--text);
@@ -88,13 +106,18 @@ body{
 
 /* Header */
 .site-header{
-  backdrop-filter: blur(10px);
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 100;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   background: rgba(251, 250, 248, 0.95);
-  border-bottom: 1px solid rgba(16,16,16,0.05);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(16,16,16,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  width: 100%;
 }
+
 .header-inner{
   display:flex;
   align-items:center;

@@ -316,35 +316,6 @@
         .copy-btn:hover {
             background: #27ae60;
         }
-
-        .mode-selection {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin: 30px 0;
-        }
-
-        .mode-card {
-            flex: 1;
-            max-width: 300px;
-            padding: 30px;
-            border: 3px solid #ddd;
-            border-radius: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .mode-card:hover {
-            border-color: #667eea;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        }
-
-        .mode-card h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-        }
     </style>
 </head>
 <body>
@@ -380,7 +351,7 @@
             </div>
         </div>
 
-        <!-- Section Rejoindre -->
+        <!-- Section Lobby -->
         <div class="lobby-section">
             <div class="room-code-box">
                 <h3>Code de la salle</h3>
@@ -434,31 +405,27 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Firebase SDK (version modulaire) -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, onValue, update, remove, get, child } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-    <script>
-        // Configuration Firebase (REMPLACEZ par vos propres identifiants)
+        // Votre configuration Firebase
         const firebaseConfig = {
-            apiKey: "VOTRE_API_KEY",
-            authDomain: "VOTRE_AUTH_DOMAIN",
-            databaseURL: "VOTRE_DATABASE_URL",
-            projectId: "VOTRE_PROJECT_ID",
-            storageBucket: "VOTRE_STORAGE_BUCKET",
-            messagingSenderId: "VOTRE_MESSAGING_SENDER_ID",
-            appId: "VOTRE_APP_ID"
+            apiKey: "AIzaSyBdKGPyyyqh5g3bIMH3OoARpDEgdjKDhAY",
+            authDomain: "petitbac-3f028.firebaseapp.com",
+            databaseURL: "https://petitbac-3f028-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "petitbac-3f028",
+            storageBucket: "petitbac-3f028.firebasestorage.app",
+            messagingSenderId: "729978066",
+            appId: "1:729978066:web:e45d6def9426d8b976090b"
         };
 
         // Initialisation Firebase
-        let firebaseApp, database;
-        try {
-            firebaseApp = firebase.initializeApp(firebaseConfig);
-            database = firebase.database();
-        } catch (error) {
-            console.warn("Firebase non configuré. Mode local activé.");
-        }
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
+        // Variables globales
         let categories = [];
         let currentRoomId = null;
         let currentPlayerId = null;
@@ -467,6 +434,7 @@
         let timerInterval = null;
         const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
+        // Fonctions utilitaires
         function generateRoomCode() {
             return Math.random().toString(36).substring(2, 8).toUpperCase();
         }
@@ -475,7 +443,8 @@
             return 'player_' + Math.random().toString(36).substring(2, 11);
         }
 
-        function addCategory() {
+        // Gestion des catégories
+        window.addCategory = function() {
             const input = document.getElementById('categoryInput');
             const errorMsg = document.getElementById('errorMsg');
             const category = input.value.trim();
@@ -506,12 +475,13 @@
             `).join('');
         }
 
-        function removeCategory(index) {
+        window.removeCategory = function(index) {
             categories.splice(index, 1);
             updateCategoriesList();
         }
 
-        async function createRoom() {
+        // Création de salle
+        window.createRoom = async function() {
             const playerName = document.getElementById('playerName').value.trim();
             
             if (!playerName) {
@@ -544,18 +514,20 @@
                 usedLetters: []
             };
 
-            if (database) {
-                await database.ref('rooms/' + currentRoomId).set(roomData);
+            try {
+                await set(ref(database, 'rooms/' + currentRoomId), roomData);
                 listenToRoom();
+                document.getElementById('roomCode').textContent = currentRoomId;
+                document.querySelector('.setup-section').classList.remove('active');
+                document.querySelector('.lobby-section').classList.add('active');
+                updatePlayersList();
+            } catch (error) {
+                alert('Erreur lors de la création de la salle: ' + error.message);
             }
-
-            document.getElementById('roomCode').textContent = currentRoomId;
-            document.querySelector('.setup-section').classList.remove('active');
-            document.querySelector('.lobby-section').classList.add('active');
-            updatePlayersList();
         }
 
-        function showJoinRoom() {
+        // Rejoindre une salle
+        window.showJoinRoom = function() {
             const roomCode = prompt('Entrez le code de la salle :');
             if (!roomCode) return;
 
@@ -569,46 +541,44 @@
         }
 
         async function joinRoom(roomCode, playerName) {
-            if (!database) {
-                alert('Firebase non configuré');
-                return;
+            try {
+                const roomRef = ref(database, 'rooms/' + roomCode);
+                const snapshot = await get(roomRef);
+                
+                if (!snapshot.exists()) {
+                    alert('Cette salle n\'existe pas');
+                    return;
+                }
+
+                currentRoomId = roomCode;
+                currentPlayerId = generatePlayerId();
+                isHost = false;
+
+                await set(ref(database, 'rooms/' + currentRoomId + '/players/' + currentPlayerId), {
+                    name: playerName,
+                    connected: true,
+                    score: 0
+                });
+
+                const roomData = snapshot.val();
+                categories = roomData.categories;
+
+                document.getElementById('roomCode').textContent = currentRoomId;
+                document.querySelector('.setup-section').classList.remove('active');
+                document.querySelector('.lobby-section').classList.add('active');
+                
+                listenToRoom();
+                updatePlayersList();
+            } catch (error) {
+                alert('Erreur lors de la connexion: ' + error.message);
             }
-
-            const roomRef = database.ref('rooms/' + roomCode);
-            const snapshot = await roomRef.once('value');
-            
-            if (!snapshot.exists()) {
-                alert('Cette salle n\'existe pas');
-                return;
-            }
-
-            currentRoomId = roomCode;
-            currentPlayerId = generatePlayerId();
-            isHost = false;
-
-            await roomRef.child('players/' + currentPlayerId).set({
-                name: playerName,
-                connected: true,
-                score: 0
-            });
-
-            const roomData = snapshot.val();
-            categories = roomData.categories;
-
-            document.getElementById('roomCode').textContent = currentRoomId;
-            document.querySelector('.setup-section').classList.remove('active');
-            document.querySelector('.lobby-section').classList.add('active');
-            
-            listenToRoom();
-            updatePlayersList();
         }
 
+        // Écoute des changements de la salle
         function listenToRoom() {
-            if (!database) return;
-
-            const roomRef = database.ref('rooms/' + currentRoomId);
+            const roomRef = ref(database, 'rooms/' + currentRoomId);
             
-            roomRef.on('value', (snapshot) => {
+            onValue(roomRef, (snapshot) => {
                 const data = snapshot.val();
                 if (!data) {
                     leaveRoom();
@@ -650,8 +620,9 @@
             document.getElementById('playersList').innerHTML = listHtml;
         }
 
-        async function startGame() {
-            if (!isHost || !database) return;
+        // Démarrer le jeu
+        window.startGame = async function() {
+            if (!isHost) return;
 
             const players = Object.entries(gameState.players).filter(([id, p]) => p.connected);
             if (players.length < 2) {
@@ -663,7 +634,7 @@
         }
 
         async function drawNewLetter() {
-            if (!isHost || !database) return;
+            if (!isHost) return;
 
             const usedLetters = gameState.usedLetters || [];
             const availableLetters = alphabet.filter(l => !usedLetters.includes(l));
@@ -683,14 +654,18 @@
                 answers: {}
             };
 
-            await database.ref('rooms/' + currentRoomId).update({
-                gameStarted: true,
-                currentRound: roundData,
-                usedLetters: [...usedLetters, newLetter]
-            });
+            try {
+                await update(ref(database, 'rooms/' + currentRoomId), {
+                    gameStarted: true,
+                    currentRound: roundData,
+                    usedLetters: [...usedLetters, newLetter]
+                });
 
-            if (isHost) {
-                startTimerCountdown();
+                if (isHost) {
+                    startTimerCountdown();
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
             }
         }
 
@@ -713,233 +688,3 @@
                     clearInterval(animationInterval);
                     display.textContent = gameState.currentRound.letter;
                 }
-            }, 100);
-        }
-
-        function createGameTable() {
-            const table = document.getElementById('gameTable');
-            const players = Object.entries(gameState.players).filter(([id, p]) => p.connected);
-            
-            let html = '<tr><th>Joueur</th>';
-            categories.forEach(cat => {
-                html += `<th>${cat}</th>`;
-            });
-            html += '<th>Points</th></tr>';
-
-            players.forEach(([playerId, player]) => {
-                const isMe = playerId === currentPlayerId;
-                html += `<tr class="player-row ${isMe ? 'my-row' : ''}">
-                    <td><strong>${player.name}</strong></td>`;
-                
-                categories.forEach((cat, cIndex) => {
-                    const answerId = `${playerId}-${cIndex}`;
-                    const answer = gameState.currentRound.answers && gameState.currentRound.answers[answerId] 
-                        ? gameState.currentRound.answers[answerId] : '';
-                    
-                    if (isMe) {
-                        html += `<td><input type="text" value="${answer}" 
-                                 onchange="saveAnswer(${cIndex}, this.value)"
-                                 ${gameState.currentRound.stopped ? 'disabled' : ''}></td>`;
-                    } else {
-                        html += `<td><input type="text" value="${answer}" disabled></td>`;
-                    }
-                });
-                
-                html += `<td class="score-cell">${player.score || 0}</td></tr>`;
-            });
-
-            table.innerHTML = html;
-        }
-
-        function updateGameTable() {
-            if (!gameState.currentRound) return;
-            
-            const players = Object.entries(gameState.players).filter(([id, p]) => p.connected);
-            
-            players.forEach(([playerId, player], pIndex) => {
-                categories.forEach((cat, cIndex) => {
-                    const answerId = `${playerId}-${cIndex}`;
-                    const answer = gameState.currentRound.answers && gameState.currentRound.answers[answerId] 
-                        ? gameState.currentRound.answers[answerId] : '';
-                    
-                    const inputs = document.querySelectorAll(`#gameTable tr:nth-child(${pIndex + 2}) td:nth-child(${cIndex + 2}) input`);
-                    if (inputs.length > 0 && playerId !== currentPlayerId) {
-                        inputs[0].value = answer;
-                    }
-                });
-                
-                const scoreCell = document.querySelector(`#gameTable tr:nth-child(${pIndex + 2}) .score-cell`);
-                if (scoreCell) {
-                    scoreCell.textContent = player.score || 0;
-                }
-            });
-        }
-
-        async function saveAnswer(categoryIndex, value) {
-            if (!database || !gameState.currentRound) return;
-
-            const answerId = `${currentPlayerId}-${categoryIndex}`;
-            await database.ref(`rooms/${currentRoomId}/currentRound/answers/${answerId}`).set(value.trim());
-        }
-
-        function startTimerCountdown() {
-            clearInterval(timerInterval);
-            
-            timerInterval = setInterval(async () => {
-                if (!gameState.currentRound || gameState.currentRound.stopped) {
-                    clearInterval(timerInterval);
-                    return;
-                }
-
-                const elapsed = Math.floor((Date.now() - gameState.currentRound.startTime) / 1000);
-                const timeLeft = gameState.timerDuration - elapsed;
-
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    await stopGame();
-                } else {
-                    await database.ref(`rooms/${currentRoomId}/currentRound/timeLeft`).set(timeLeft);
-                }
-            }, 1000);
-        }
-
-        function updateTimer(timeLeft) {
-            const timerDisplay = document.getElementById('timer');
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-            if (timeLeft <= 10) {
-                timerDisplay.classList.add('warning');
-            } else {
-                timerDisplay.classList.remove('warning');
-            }
-        }
-
-        async function stopGame() {
-            if (!database) return;
-
-            await database.ref(`rooms/${currentRoomId}/currentRound/stopped`).set(true);
-            clearInterval(timerInterval);
-        }
-
-        async function endRound() {
-            if (!isHost) {
-                showResultsSection();
-                return;
-            }
-
-            // Calculer les scores
-            const players = Object.entries(gameState.players).filter(([id, p]) => p.connected);
-            const answers = gameState.currentRound.answers || {};
-
-            categories.forEach((cat, cIndex) => {
-                const categoryAnswers = {};
-                
-                // Compter les réponses
-                players.forEach(([playerId]) => {
-                    const answerId = `${playerId}-${cIndex}`;
-                    const answer = answers[answerId] || '';
-                    const normalizedAnswer = answer.toUpperCase().trim();
-                    
-                    if (normalizedAnswer && normalizedAnswer[0] === gameState.currentRound.letter) {
-                        categoryAnswers[normalizedAnswer] = (categoryAnswers[normalizedAnswer] || 0) + 1;
-                    }
-                });
-
-                // Attribuer les points
-                players.forEach(async ([playerId, player]) => {
-                    const answerId = `${playerId}-${cIndex}`;
-                    const answer = answers[answerId] || '';
-                    const normalizedAnswer = answer.toUpperCase().trim();
-                    
-                    if (normalizedAnswer && normalizedAnswer[0] === gameState.currentRound.letter) {
-                        const points = categoryAnswers[normalizedAnswer] === 1 ? 10 : 5;
-                        const newScore = (player.score || 0) + points;
-                        await database.ref(`rooms/${currentRoomId}/players/${playerId}/score`).set(newScore);
-                    }
-                });
-            });
-
-            setTimeout(() => showResultsSection(), 1000);
-        }
-
-        function showResultsSection() {
-            document.querySelector('.game-section').classList.remove('active');
-            document.querySelector('.results-section').classList.add('active');
-
-            const players = Object.entries(gameState.players)
-                .filter(([id, p]) => p.connected)
-                .sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
-
-            const winner = players[0];
-            document.getElementById('winner').textContent = 
-                `🏆 ${winner[1].name} mène avec ${winner[1].score} points !`;
-
-            const resultsHTML = players.map(([id, player], index) => `
-                <div class="player-score">
-                    <span>${index + 1}. ${player.name} ${id === currentPlayerId ? '(Vous)' : ''}</span>
-                    <span>${player.score || 0} points</span>
-                </div>
-            `).join('');
-
-            document.getElementById('resultsTable').innerHTML = resultsHTML;
-        }
-
-        async function newRound() {
-            if (!isHost) return;
-            await drawNewLetter();
-        }
-
-        function copyRoomCode() {
-            const code = document.getElementById('roomCode').textContent;
-            navigator.clipboard.writeText(code);
-            alert('Code copié : ' + code);
-        }
-
-        async function leaveRoom() {
-            if (database && currentRoomId && currentPlayerId) {
-                await database.ref(`rooms/${currentRoomId}/players/${currentPlayerId}/connected`).set(false);
-                
-                if (isHost) {
-                    await database.ref(`rooms/${currentRoomId}`).remove();
-                }
-            }
-            
-            resetGame();
-        }
-
-        function resetGame() {
-            categories = [];
-            currentRoomId = null;
-            currentPlayerId = null;
-            isHost = false;
-            gameState = null;
-            clearInterval(timerInterval);
-
-            document.querySelector('.lobby-section').classList.remove('active');
-            document.querySelector('.game-section').classList.remove('active');
-            document.querySelector('.results-section').classList.remove('active');
-            document.querySelector('.setup-section').classList.add('active');
-
-            document.getElementById('categoryInput').value = '';
-            document.getElementById('playerName').value = '';
-            updateCategoriesList();
-        }
-
-        // Permettre d'ajouter une catégorie avec Entrée
-        document.getElementById('categoryInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addCategory();
-            }
-        });
-
-        // Déconnexion propre
-        window.addEventListener('beforeunload', () => {
-            if (database && currentRoomId && currentPlayerId) {
-                database.ref(`rooms/${currentRoomId}/players/${currentPlayerId}/connected`).set(false);
-            }
-        });
-    </script>
-</body>
-</html>

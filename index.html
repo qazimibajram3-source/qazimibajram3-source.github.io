@@ -34,13 +34,20 @@
             font-size: 2.5em;
         }
 
-        .setup-section, .lobby-section, .game-section, .results-section {
+        .menu-section, .lobby-section, .game-section, .results-section {
             display: none;
         }
 
-        .setup-section.active, .lobby-section.active, 
-        .game-section.active, .results-section.active {
+        .menu-section.active, .lobby-section.active, .game-section.active, .results-section.active {
             display: block;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 400px;
+            margin: 0 auto;
         }
 
         .input-group {
@@ -70,6 +77,8 @@
 
         .categories-list {
             margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
         }
 
         .category-item {
@@ -111,6 +120,7 @@
             cursor: pointer;
             transition: all 0.3s;
             margin: 10px 5px;
+            width: 100%;
         }
 
         .btn:hover {
@@ -125,7 +135,15 @@
             transform: none;
         }
 
-        .room-code-box {
+        .btn-secondary {
+            background: #48dbfb;
+        }
+
+        .btn-secondary:hover {
+            background: #0abde3;
+        }
+
+        .room-code-display {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 12px;
@@ -138,8 +156,7 @@
             font-weight: bold;
             color: #667eea;
             letter-spacing: 5px;
-            margin: 15px 0;
-            user-select: all;
+            margin: 10px 0;
         }
 
         .players-list {
@@ -152,24 +169,18 @@
         .player-item {
             padding: 12px;
             background: white;
-            margin: 8px 0;
+            margin-bottom: 8px;
             border-radius: 8px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .player-indicator {
+        .player-status {
             width: 12px;
             height: 12px;
-            background: #2ecc71;
             border-radius: 50%;
-            animation: pulse-dot 2s infinite;
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            background: #2ecc71;
         }
 
         .game-header {
@@ -240,6 +251,7 @@
             border: none;
             padding: 8px;
             font-size: 16px;
+            background: transparent;
         }
 
         td input:focus {
@@ -247,9 +259,20 @@
             border-radius: 4px;
         }
 
-        td input:disabled {
-            background: #f0f0f0;
-            cursor: not-allowed;
+        .answer-cell {
+            background: #fafafa;
+        }
+
+        .answer-cell.unique {
+            background: #d4edda;
+        }
+
+        .answer-cell.shared {
+            background: #fff3cd;
+        }
+
+        .answer-cell.empty {
+            background: #f8d7da;
         }
 
         .score-cell {
@@ -260,19 +283,12 @@
             color: #667eea;
         }
 
-        .player-row {
-            background: #fafafa;
-        }
-
-        .my-row {
-            background: #e3f2fd !important;
-        }
-
         .controls {
             display: flex;
             justify-content: center;
             gap: 15px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
 
         .stop-btn {
@@ -285,10 +301,16 @@
             background: #ff3838;
         }
 
+        .results-table {
+            margin: 30px auto;
+            max-width: 600px;
+        }
+
         .winner {
             font-size: 48px;
             color: #ffa502;
             margin: 20px 0;
+            text-align: center;
         }
 
         .player-score {
@@ -307,14 +329,19 @@
             margin-top: 5px;
         }
 
-        .copy-btn {
-            background: #2ecc71;
-            padding: 10px 20px;
-            margin-top: 10px;
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
         }
 
-        .copy-btn:hover {
-            background: #27ae60;
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-size: 18px;
         }
     </style>
 </head>
@@ -322,13 +349,21 @@
     <div class="container">
         <h1>🎮 PetitBac Multijoueur</h1>
 
-        <!-- Section Configuration -->
-        <div class="setup-section active">
-            <h2 style="text-align: center; margin-bottom: 30px;">Créer une partie</h2>
+        <!-- Menu Principal -->
+        <div class="menu-section active">
+            <div class="menu-buttons">
+                <button class="btn" onclick="showCreateRoom()">Créer une partie</button>
+                <button class="btn btn-secondary" onclick="showJoinRoom()">Rejoindre une partie</button>
+            </div>
+        </div>
+
+        <!-- Création de partie -->
+        <div class="lobby-section" id="createRoomSection">
+            <h2>Créer une partie</h2>
             
             <div class="input-group">
                 <label>Votre pseudo :</label>
-                <input type="text" id="playerName" placeholder="Entrez votre pseudo">
+                <input type="text" id="hostUsername" placeholder="Entrez votre pseudo">
             </div>
 
             <div class="input-group">
@@ -337,7 +372,7 @@
             </div>
 
             <div class="input-group">
-                <label>Ajouter une catégorie :</label>
+                <label>Ajouter des catégories :</label>
                 <input type="text" id="categoryInput" placeholder="Ex: Pays, Ville, Métier...">
                 <button class="btn" onclick="addCategory()">Ajouter</button>
                 <div id="errorMsg" class="error-msg"></div>
@@ -345,30 +380,46 @@
 
             <div class="categories-list" id="categoriesList"></div>
 
-            <div style="text-align: center; margin-top: 30px;">
-                <button class="btn" onclick="createRoom()">Créer la salle</button>
-                <button class="btn" onclick="showJoinRoom()">Rejoindre une salle</button>
-            </div>
+            <button class="btn" onclick="createRoom()">Créer la salle</button>
+            <button class="btn btn-secondary" onclick="backToMenu()">Retour</button>
         </div>
 
-        <!-- Section Lobby -->
-        <div class="lobby-section">
-            <div class="room-code-box">
-                <h3>Code de la salle</h3>
-                <div class="room-code" id="roomCode">----</div>
-                <button class="btn copy-btn" onclick="copyRoomCode()">📋 Copier le code</button>
-                <p style="margin-top: 15px; color: #666;">Partagez ce code avec vos amis !</p>
+        <!-- Rejoindre une partie -->
+        <div class="lobby-section" id="joinRoomSection">
+            <h2>Rejoindre une partie</h2>
+            
+            <div class="input-group">
+                <label>Votre pseudo :</label>
+                <input type="text" id="guestUsername" placeholder="Entrez votre pseudo">
+            </div>
+
+            <div class="input-group">
+                <label>Code de la salle :</label>
+                <input type="text" id="roomCodeInput" placeholder="Entrez le code à 6 chiffres" maxlength="6">
+            </div>
+
+            <button class="btn" onclick="joinRoom()">Rejoindre</button>
+            <button class="btn btn-secondary" onclick="backToMenu()">Retour</button>
+        </div>
+
+        <!-- Lobby d'attente -->
+        <div class="lobby-section" id="waitingLobby">
+            <div class="room-code-display">
+                <div>Code de la salle :</div>
+                <div class="room-code" id="displayRoomCode">------</div>
+                <div style="color: #666; margin-top: 10px;">Partagez ce code avec vos amis</div>
             </div>
 
             <div class="players-list">
-                <h3>Joueurs connectés (<span id="playerCount">0</span>)</h3>
+                <h3>Joueurs connectés :</h3>
                 <div id="playersList"></div>
             </div>
 
-            <div style="text-align: center; margin-top: 30px;">
-                <button class="btn" onclick="startGame()" id="startGameBtn">Démarrer la partie</button>
-                <button class="btn" onclick="leaveRoom()" style="background: #ff4757;">Quitter</button>
+            <div id="hostControls" style="display: none;">
+                <button class="btn" onclick="startGame()">Démarrer la partie</button>
             </div>
+            
+            <button class="btn btn-secondary" onclick="leaveRoom()">Quitter la salle</button>
         </div>
 
         <!-- Section Jeu -->
@@ -389,28 +440,28 @@
             </div>
 
             <div class="controls">
-                <button class="btn stop-btn" id="stopBtn" onclick="stopGame()">STOP !</button>
+                <button class="btn stop-btn" id="stopBtn" onclick="requestStop()">STOP !</button>
             </div>
         </div>
 
         <!-- Section Résultats -->
         <div class="results-section">
-            <h2 style="text-align: center;">🏆 Résultats</h2>
-            <div class="winner" id="winner" style="text-align: center;"></div>
-            <div id="resultsTable"></div>
-            <div style="text-align: center; margin-top: 30px;">
-                <button class="btn" onclick="newRound()">Nouvelle manche</button>
-                <button class="btn" onclick="resetGame()" style="background: #ff4757;">Quitter la partie</button>
+            <h2>🏆 Résultats de la manche</h2>
+            <div class="results-table" id="resultsTable"></div>
+            <div id="hostGameControls" style="display: none;">
+                <button class="btn" onclick="requestNextLetter()">Nouvelle lettre</button>
+                <button class="btn btn-secondary" onclick="endGame()">Terminer la partie</button>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK (version modulaire) -->
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getDatabase, ref, set, onValue, update, remove, get, child } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getDatabase, ref, set, get, update, onValue, push, remove, onDisconnect } 
+            from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-        // Votre configuration Firebase
+        // VOTRE Configuration Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBdKGPyyyqh5g3bIMH3OoARpDEgdjKDhAY",
             authDomain: "petitbac-3f028.firebaseapp.com",
@@ -421,29 +472,38 @@
             appId: "1:729978066:web:e45d6def9426d8b976090b"
         };
 
-        // Initialisation Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
         // Variables globales
-        let categories = [];
-        let currentRoomId = null;
+        let currentRoomCode = null;
         let currentPlayerId = null;
+        let currentPlayerName = null;
         let isHost = false;
-        let gameState = null;
+        let categories = [];
         let timerInterval = null;
-        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        let roomRef = null;
 
-        // Fonctions utilitaires
-        function generateRoomCode() {
-            return Math.random().toString(36).substring(2, 8).toUpperCase();
-        }
+        window.categories = categories;
 
-        function generatePlayerId() {
-            return 'player_' + Math.random().toString(36).substring(2, 11);
-        }
+        // Fonctions d'interface
+        window.showCreateRoom = function() {
+            document.querySelector('.menu-section').classList.remove('active');
+            document.getElementById('createRoomSection').classList.add('active');
+        };
 
-        // Gestion des catégories
+        window.showJoinRoom = function() {
+            document.querySelector('.menu-section').classList.remove('active');
+            document.getElementById('joinRoomSection').classList.add('active');
+        };
+
+        window.backToMenu = function() {
+            document.querySelectorAll('.lobby-section').forEach(el => el.classList.remove('active'));
+            document.querySelector('.menu-section').classList.add('active');
+            categories = [];
+            updateCategoriesList();
+        };
+
         window.addCategory = function() {
             const input = document.getElementById('categoryInput');
             const errorMsg = document.getElementById('errorMsg');
@@ -463,7 +523,7 @@
             input.value = '';
             errorMsg.textContent = '';
             updateCategoriesList();
-        }
+        };
 
         function updateCategoriesList() {
             const list = document.getElementById('categoriesList');
@@ -478,14 +538,20 @@
         window.removeCategory = function(index) {
             categories.splice(index, 1);
             updateCategoriesList();
+        };
+
+        // Générer un code de salle aléatoire
+        function generateRoomCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
         }
 
-        // Création de salle
+        // Créer une salle
         window.createRoom = async function() {
-            const playerName = document.getElementById('playerName').value.trim();
-            
-            if (!playerName) {
-                alert('Veuillez entrer votre pseudo');
+            const username = document.getElementById('hostUsername').value.trim();
+            const timerDuration = parseInt(document.getElementById('timerDuration').value);
+
+            if (!username) {
+                alert('Veuillez entrer un pseudo');
                 return;
             }
 
@@ -494,197 +560,425 @@
                 return;
             }
 
-            const timerDuration = parseInt(document.getElementById('timerDuration').value);
-            currentRoomId = generateRoomCode();
-            currentPlayerId = generatePlayerId();
+            currentRoomCode = generateRoomCode();
+            currentPlayerId = push(ref(database, 'temp')).key;
+            currentPlayerName = username;
             isHost = true;
 
             const roomData = {
-                hostId: currentPlayerId,
+                host: currentPlayerId,
                 categories: categories,
                 timerDuration: timerDuration,
+                status: 'waiting',
                 players: {
                     [currentPlayerId]: {
-                        name: playerName,
-                        connected: true,
-                        score: 0
+                        name: username,
+                        isHost: true,
+                        connected: true
                     }
                 },
-                gameStarted: false,
-                usedLetters: []
+                gameState: {
+                    currentLetter: null,
+                    usedLetters: [],
+                    roundActive: false
+                }
             };
 
             try {
-                await set(ref(database, 'rooms/' + currentRoomId), roomData);
+                await set(ref(database, `rooms/${currentRoomCode}`), roomData);
+                
+                roomRef = ref(database, `rooms/${currentRoomCode}`);
+                onDisconnect(ref(database, `rooms/${currentRoomCode}/players/${currentPlayerId}`)).remove();
+                
+                showWaitingLobby();
                 listenToRoom();
-                document.getElementById('roomCode').textContent = currentRoomId;
-                document.querySelector('.setup-section').classList.remove('active');
-                document.querySelector('.lobby-section').classList.add('active');
-                updatePlayersList();
             } catch (error) {
                 alert('Erreur lors de la création de la salle: ' + error.message);
             }
-        }
+        };
 
         // Rejoindre une salle
-        window.showJoinRoom = function() {
-            const roomCode = prompt('Entrez le code de la salle :');
-            if (!roomCode) return;
+        window.joinRoom = async function() {
+            const username = document.getElementById('guestUsername').value.trim();
+            const roomCode = document.getElementById('roomCodeInput').value.trim();
 
-            const playerName = document.getElementById('playerName').value.trim();
-            if (!playerName) {
-                alert('Veuillez entrer votre pseudo');
+            if (!username) {
+                alert('Veuillez entrer un pseudo');
                 return;
             }
 
-            joinRoom(roomCode.toUpperCase(), playerName);
-        }
+            if (!roomCode || roomCode.length !== 6) {
+                alert('Veuillez entrer un code de salle valide');
+                return;
+            }
 
-        async function joinRoom(roomCode, playerName) {
             try {
-                const roomRef = ref(database, 'rooms/' + roomCode);
-                const snapshot = await get(roomRef);
+                const roomSnapshot = await get(ref(database, `rooms/${roomCode}`));
                 
-                if (!snapshot.exists()) {
+                if (!roomSnapshot.exists()) {
                     alert('Cette salle n\'existe pas');
                     return;
                 }
 
-                currentRoomId = roomCode;
-                currentPlayerId = generatePlayerId();
-                isHost = false;
-
-                await set(ref(database, 'rooms/' + currentRoomId + '/players/' + currentPlayerId), {
-                    name: playerName,
-                    connected: true,
-                    score: 0
-                });
-
-                const roomData = snapshot.val();
-                categories = roomData.categories;
-
-                document.getElementById('roomCode').textContent = currentRoomId;
-                document.querySelector('.setup-section').classList.remove('active');
-                document.querySelector('.lobby-section').classList.add('active');
-                
-                listenToRoom();
-                updatePlayersList();
-            } catch (error) {
-                alert('Erreur lors de la connexion: ' + error.message);
-            }
-        }
-
-        // Écoute des changements de la salle
-        function listenToRoom() {
-            const roomRef = ref(database, 'rooms/' + currentRoomId);
-            
-            onValue(roomRef, (snapshot) => {
-                const data = snapshot.val();
-                if (!data) {
-                    leaveRoom();
+                const roomData = roomSnapshot.val();
+                if (roomData.status !== 'waiting') {
+                    alert('Cette partie a déjà commencé');
                     return;
                 }
 
-                gameState = data;
-                updatePlayersList();
+                currentRoomCode = roomCode;
+                currentPlayerId = push(ref(database, 'temp')).key;
+                currentPlayerName = username;
+                isHost = false;
+                categories = roomData.categories;
 
-                if (data.gameStarted && !document.querySelector('.game-section').classList.contains('active')) {
-                    showGameSection();
+                await set(ref(database, `rooms/${currentRoomCode}/players/${currentPlayerId}`), {
+                    name: username,
+                    isHost: false,
+                    connected: true
+                });
+
+                roomRef = ref(database, `rooms/${currentRoomCode}`);
+                onDisconnect(ref(database, `rooms/${currentRoomCode}/players/${currentPlayerId}`)).remove();
+
+                showWaitingLobby();
+                listenToRoom();
+            } catch (error) {
+                alert('Erreur lors de la connexion: ' + error.message);
+            }
+        };
+
+        // Afficher le lobby d'attente
+        function showWaitingLobby() {
+            document.querySelectorAll('.lobby-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('waitingLobby').classList.add('active');
+            document.getElementById('displayRoomCode').textContent = currentRoomCode;
+            
+            if (isHost) {
+                document.getElementById('hostControls').style.display = 'block';
+            }
+        }
+
+        // Écouter les changements de la salle
+        function listenToRoom() {
+            onValue(roomRef, (snapshot) => {
+                const roomData = snapshot.val();
+                
+                if (!roomData) {
+                    alert('La salle a été fermée');
+                    backToMenu();
+                    return;
                 }
 
-                if (data.currentRound) {
-                    updateGameTable();
-                    updateTimer(data.currentRound.timeLeft);
-                    
-                    if (data.currentRound.stopped) {
-                        endRound();
-                    }
+                updatePlayersList(roomData.players);
+
+                if (roomData.status === 'playing' && document.querySelector('.game-section:not(.active)')) {
+                    startGamePlay(roomData);
+                }
+
+                if (roomData.status === 'playing') {
+                    updateGameState(roomData);
+                }
+
+                if (roomData.status === 'results') {
+                    showResultsFromData(roomData);
                 }
             });
         }
 
-        function updatePlayersList() {
-            if (!gameState || !gameState.players) return;
-
-            const players = Object.entries(gameState.players).filter(([id, player]) => player.connected);
-            document.getElementById('playerCount').textContent = players.length;
-            
-            const listHtml = players.map(([id, player]) => `
+        // Mettre à jour la liste des joueurs
+        function updatePlayersList(players) {
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = Object.values(players || {}).map(player => `
                 <div class="player-item">
-                    <div class="player-indicator"></div>
-                    <strong>${player.name}</strong> ${id === currentPlayerId ? '(Vous)' : ''}
-                    ${id === gameState.hostId ? '👑' : ''}
+                    <div class="player-status"></div>
+                    <span>${player.name}${player.isHost ? ' (Hôte)' : ''}</span>
                 </div>
             `).join('');
-            
-            document.getElementById('playersList').innerHTML = listHtml;
         }
 
-        // Démarrer le jeu
+        // Démarrer la partie
         window.startGame = async function() {
             if (!isHost) return;
 
-            const players = Object.entries(gameState.players).filter(([id, p]) => p.connected);
-            if (players.length < 2) {
-                alert('Il faut au moins 2 joueurs pour commencer');
-                return;
-            }
-
-            await drawNewLetter();
-        }
-
-        async function drawNewLetter() {
-            if (!isHost) return;
-
-            const usedLetters = gameState.usedLetters || [];
-            const availableLetters = alphabet.filter(l => !usedLetters.includes(l));
-            
-            if (availableLetters.length === 0) {
-                alert('Toutes les lettres ont été utilisées !');
-                return;
-            }
-
-            const newLetter = availableLetters[Math.floor(Math.random() * availableLetters.length)];
-            
-            const roundData = {
-                letter: newLetter,
-                timeLeft: gameState.timerDuration,
-                startTime: Date.now(),
-                stopped: false,
-                answers: {}
-            };
-
             try {
-                await update(ref(database, 'rooms/' + currentRoomId), {
-                    gameStarted: true,
-                    currentRound: roundData,
-                    usedLetters: [...usedLetters, newLetter]
+                await update(ref(database, `rooms/${currentRoomCode}`), {
+                    status: 'playing'
                 });
 
-                if (isHost) {
-                    startTimerCountdown();
-                }
+                await requestNextLetter();
             } catch (error) {
-                console.error('Erreur:', error);
+                alert('Erreur lors du démarrage: ' + error.message);
+            }
+        };
+
+        // Démarrer le gameplay
+        function startGamePlay(roomData) {
+            document.getElementById('waitingLobby').classList.remove('active');
+            document.querySelector('.game-section').classList.add('active');
+            
+            createGameTable(roomData.players);
+        }
+
+        // Créer le tableau de jeu
+        function createGameTable(players) {
+            const table = document.getElementById('gameTable');
+            let html = '<tr><th>Joueur</th>';
+            
+            categories.forEach(cat => {
+                html += `<th>${cat}</th>`;
+            });
+            html += '<th>Points</th></tr>';
+
+            Object.entries(players).forEach(([playerId, player]) => {
+                html += `<tr><td><strong>${player.name}</strong></td>`;
+                
+                categories.forEach((cat, cIndex) => {
+                    const isCurrentPlayer = playerId === currentPlayerId;
+                    const inputId = `input-${playerId}-${cIndex}`;
+                    const disabled = !isCurrentPlayer ? 'disabled' : '';
+                    
+                    html += `<td class="answer-cell" id="cell-${playerId}-${cIndex}">
+                        <input type="text" id="${inputId}" ${disabled} 
+                               onkeyup="saveAnswer('${playerId}', ${cIndex}, this.value)">
+                    </td>`;
+                });
+                
+                html += `<td class="score-cell" id="score-${playerId}">0</td></tr>`;
+            });
+
+            table.innerHTML = html;
+        }
+
+        // Sauvegarder une réponse
+        window.saveAnswer = async function(playerId, categoryIndex, value) {
+            try {
+                await set(ref(database, `rooms/${currentRoomCode}/answers/${playerId}/${categoryIndex}`), value.trim());
+            } catch (error) {
+                console.error('Erreur sauvegarde:', error);
+            }
+        };
+
+        // Demander une nouvelle lettre
+        window.requestNextLetter = async function() {
+            if (!isHost) return;
+
+            try {
+                const roomSnapshot = await get(roomRef);
+                const roomData = roomSnapshot.val();
+                const usedLetters = roomData.gameState?.usedLetters || [];
+                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+                const availableLetters = alphabet.filter(l => !usedLetters.includes(l));
+
+                if (availableLetters.length === 0) {
+                    alert('Toutes les lettres ont été utilisées!');
+                    return;
+                }
+
+                // Animation
+                animateLetter(availableLetters, async () => {
+                    const newLetter = availableLetters[Math.floor(Math.random() * availableLetters.length)];
+                    
+                    await update(ref(database, `rooms/${currentRoomCode}/gameState`), {
+                        currentLetter: newLetter,
+                        usedLetters: [...usedLetters, newLetter],
+                        roundActive: true,
+                        roundStartTime: Date.now()
+                    });
+
+                    await update(ref(database, `rooms/${currentRoomCode}`), {
+                        status: 'playing',
+                        scores: {}
+                    });
+
+                    await remove(ref(database, `rooms/${currentRoomCode}/answers`));
+                    
+                    document.querySelector('.results-section').classList.remove('active');
+                    document.querySelector('.game-section').classList.add('active');
+                    
+                    startTimer(roomData.timerDuration);
+                });
+            } catch (error) {
+                alert('Erreur: ' + error.message);
+            }
+        };
+
+        // Animation de la lettre
+        function animateLetter(letters, callback) {
+            const display = document.getElementById('letterDisplay');
+            let count = 0;
+            const interval = setInterval(() => {
+                display.textContent = letters[Math.floor(Math.random() * letters.length)];
+                count++;
+                if (count >= 15) {
+                    clearInterval(interval);
+                    callback();
+                }
+            }, 100);
+        }
+
+        // Démarrer le timer
+        function startTimer(duration) {
+            clearInterval(timerInterval);
+            let timeLeft = duration;
+            const timerDisplay = document.getElementById('timer');
+
+            timerInterval = setInterval(async () => {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                if (timeLeft <= 10) {
+                    timerDisplay.classList.add('warning');
+                } else {
+                    timerDisplay.classList.remove('warning');
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    if (isHost) {
+                        await stopRound();
+                    }
+                }
+            }, 1000);
+        }
+
+        // Demander un stop
+        window.requestStop = async function() {
+            if (!isHost) return;
+            await stopRound();
+        };
+
+        // Arrêter la manche
+        async function stopRound() {
+            try {
+                clearInterval(timerInterval);
+                
+                await update(ref(database, `rooms/${currentRoomCode}/gameState`), {
+                    roundActive: false
+                });
+
+                await calculateAndShowResults();
+            } catch (error) {
+                console.error('Erreur stop:', error);
             }
         }
 
-        function showGameSection() {
-            document.querySelector('.lobby-section').classList.remove('active');
-            document.querySelector('.results-section').classList.remove('active');
-            document.querySelector('.game-section').classList.add('active');
-            
-            createGameTable();
-            animateLetter();
+        // Calculer et afficher les résultats
+        async function calculateAndShowResults() {
+            const roomSnapshot = await get(roomRef);
+            const roomData = roomSnapshot.val();
+            const players = roomData.players;
+            const answers = roomData.answers || {};
+            const currentLetter = roomData.gameState.currentLetter;
+
+            const scores = {};
+            Object.keys(players).forEach(pid => {
+                scores[pid] = roomData.scores?.[pid] || 0;
+            });
+
+            categories.forEach((cat, catIndex) => {
+                const categoryAnswers = {};
+                
+                Object.entries(answers).forEach(([playerId, playerAnswers]) => {
+                    const answer = (playerAnswers[catIndex] || '').toUpperCase();
+                    if (answer && answer[0] === currentLetter) {
+                        categoryAnswers[playerId] = answer;
+                    }
+                });
+
+                const answerCounts = {};
+                Object.values(categoryAnswers).forEach(answer => {
+                    answerCounts[answer] = (answerCounts[answer] || 0) + 1;
+                });
+
+                Object.entries(categoryAnswers).forEach(([playerId, answer]) => {
+                    if (answerCounts[answer] === 1) {
+                        scores[playerId] += 10;
+                    } else {
+                        scores[playerId] += 5;
+                    }
+                });
+            });
+
+            await update(ref(database, `rooms/${currentRoomCode}`), { 
+                scores,
+                status: 'results'
+            });
         }
 
-        function animateLetter() {
-            const display = document.getElementById('letterDisplay');
-            let count = 0;
-            const animationInterval = setInterval(() => {
-                display.textContent = alphabet[Math.floor(Math.random() * alphabet.length)];
-                count++;
-                if (count >= 15) {
-                    clearInterval(animationInterval);
-                    display.textContent = gameState.currentRound.letter;
+        // Afficher les résultats depuis les données
+        function showResultsFromData(roomData) {
+            document.querySelector('.game-section').classList.remove('active');
+            document.querySelector('.results-section').classList.add('active');
+
+            const players = roomData.players;
+            const scores = roomData.scores || {};
+
+            const sortedPlayers = Object.entries(players)
+                .map(([id, player]) => ({ id, ...player, score: scores[id] || 0 }))
+                .sort((a, b) => b.score - a.score);
+
+            const resultsHTML = sortedPlayers.map((player, index) => `
+                <div class="player-score">
+                    <span>${index + 1}. ${player.name}</span>
+                    <span>${player.score} points</span>
+                </div>
+            `).join('');
+
+            document.getElementById('resultsTable').innerHTML = resultsHTML;
+
+            if (isHost) {
+                document.getElementById('hostGameControls').style.display = 'block';
+            }
+        }
+
+        // Mettre à jour l'état du jeu
+        function updateGameState(roomData) {
+            if (roomData.gameState?.currentLetter) {
+                document.getElementById('letterDisplay').textContent = roomData.gameState.currentLetter;
+            }
+
+            if (roomData.answers) {
+                Object.entries(roomData.answers).forEach(([playerId, playerAnswers]) => {
+                    Object.entries(playerAnswers).forEach(([catIndex, answer]) => {
+                        const input = document.getElementById(`input-${playerId}-${catIndex}`);
+                        if (input && playerId !== currentPlayerId) {
+                            input.value = answer;
+                        }
+                    });
+                });
+            }
+        }
+
+        // Quitter la salle
+        window.leaveRoom = async function() {
+            if (currentRoomCode && currentPlayerId) {
+                await remove(ref(database, `rooms/${currentRoomCode}/players/${currentPlayerId}`));
+                
+                if (isHost) {
+                    await remove(ref(database, `rooms/${currentRoomCode}`));
                 }
+            }
+            
+            backToMenu();
+        };
+
+        // Terminer la partie
+        window.endGame = async function() {
+            if (isHost) {
+                await remove(ref(database, `rooms/${currentRoomCode}`));
+            }
+            backToMenu();
+        };
+
+        // Permettre d'ajouter une catégorie avec Entrée
+        document.getElementById('categoryInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                window.addCategory();
+            }
+        });
+    </script>
+</body>
+</html>

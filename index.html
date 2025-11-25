@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetitBac - Multijoueur</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .setup-section, .lobby-section, .game-section, .results-section {
+            display: none;
+        }
+
+        .setup-section.active, .lobby-section.active, 
+        .game-section.active, .results-section.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .categories-list {
+            margin-top: 10px;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            margin-bottom: 8px;
+            border-radius: 8px;
+        }
+
+        .category-item span {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .remove-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .remove-btn:hover {
+            background: #ff3838;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .room-code-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .room-code {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            letter-spacing: 5px;
+            margin: 15px 0;
+            user-select: all;
+        }
+
+        .players-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .player-item {
+            padding: 12px;
+            background: white;
+            margin: 8px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-indicator {
+            width: 12px;
+            height: 12px;
+            background: #2ecc71;
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+
+        .letter-display {
+            font-size: 80px;
+            font-weight: bold;
+            color: #667eea;
+            animation: spin 0.5s ease-in-out;
+        }
+
+        @keyframes spin {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(180deg); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        .timer {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff4757;
+        }
+
+        .timer.warning {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .game-grid {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 12px;
+            border: 2px solid #ddd;
+        }
+
+        td input {
+            width: 100%;
+            border: none;
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        td input:focus {
+            outline: 2px solid #667eea;
+            border-radius: 4px;
+        }
+
+        td input:disabled {
+            background: #f0f0f0;
+            cursor: not-allowed;
+        }
+
+        .score-cell {
+            background: #f8f9fa;
+            font-weight: bold;
+            text-align: center;
+            font-size: 18px;
+            color: #667eea;
+        }
+
+        .player-row {
+            background: #fafafa;
+        }
+
+        .my-row {
+            background: #e3f2fd !important;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stop-btn {
+            background: #ff4757;
+            font-size: 18px;
+            padding: 16px 40px;
+        }
+
+        .stop-btn:hover {
+            background: #ff3838;
+        }
+
+        .winner {
+            font-size: 48px;
+            color: #ffa502;
+            margin: 20px 0;
+        }
+
+        .player-score {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 20px;
+        }
+
+        .error-msg {
+            color: #ff4757;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .copy-btn {
+            background: #2ecc71;
+            padding: 10px 20px;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #27ae60;
+        }
+
+        .mode-selection {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .mode-card {
+            flex: 1;
+            max-width: 300px;
+            padding: 30px;
+            border: 3px solid #ddd;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .mode-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 PetitBac Multijoueur</h1>
+
+        <!-- Section Configuration -->
+        <div class="setup-section active">
+            <h2 style="text-align: center; margin-bottom: 30px;">Créer une partie</h2>
+            
+            <div class="input-group">
+                <label>Votre pseudo :</label>
+                <input type="text" id="playerName" placeholder="Entrez votre pseudo">
+            </div>
+
+            <div class="input-group">
+                <label>Durée du timer (en secondes) :</label>
+                <input type="number" id="timerDuration" min="30" max="300" value="60">
+            </div>
+
+            <div class="input-group">
+                <label>Ajouter une catégorie :</label>
+                <input type="text" id="categoryInput" placeholder="Ex: Pays, Ville, Métier...">
+                <button class="btn" onclick="addCategory()">Ajouter</button>
+                <div id="errorMsg" class="error-msg"></div>
+            </div>
+
+            <div class="categories-list" id="categoriesList"></div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" onclick="createRoom()">Créer la salle</button>
+                <button class="btn" onclick="showJoinRoom()">Rejoindre une salle</button>
+            </div>
+        </div>
+
+        <!-- Section Rejoindre -->
+        <div class="lobby-section">
+            <div class="room-code-box">
+                <h3>Code de la salle</h3>
+                <div class="room-code" id="roomCode">----</div>
+                <button class="btn copy-btn" onclick="copyRoomCode()">📋 Copier le code</button>
+                <p style="margin-top: 15px; color: #666;">Partagez ce code avec vos amis !</p>
+            </div>
+
+            <div class="players-list">
+                <h3>Joueurs connectés (<span id="playerCount">0</span>)</h3>
+                <div id="playersList"></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" onclick="startGame()" id="startGameBtn">Démarrer la partie</button>
+                <button class="btn" onclick="leaveRoom()" style="background: #ff4757;">Quitter</button>
+            </div>
+        </div>
+
+        <!-- Section Jeu -->
+        <div class="game-section">
+            <div class="game-header">
+                <div>
+                    <div>Lettre :</div>
+                    <div class="letter-display" id="letterDisplay">?</div>
+                </div>
+                <div>
+                    <div>Temps restant :</div>
+                    <div class="timer" id="timer">00:00</div>
+                </div>
+            </div>
+
+            <div class="game-grid">
+                <table id="gameTable"></table>
+            </div>
+
+            <div class="controls">
+                <button class="btn stop-btn" id="stopBtn" onclick="stopGame()">STOP !</button>
+            </div>
+        </div>
+
+        <!-- Section Résultats -->
+        <div class="results-section">
+            <h2 style="text-align: center;">🏆 Résultats</h2>
+            <div class="winner" id="winner" style="text-align: center;"></div>
+            <div id="resultsTable"></div>
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" onclick="newRound()">Nouvelle manche</button>
+                <button class="btn" onclick="resetGame()" style="background: #ff4757;">Quitter la partie</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Configuration Firebase (REMPLACEZ par vos propres identifiants)
+        const firebaseConfig = {
+            apiKey: "VOTRE_API_KEY",
+            authDomain: "VOTRE_AUTH_DOMAIN",
+            databaseURL: "VOTRE_DATABASE_URL",
+            projectId: "VOTRE_PROJECT_ID",
+            storageBucket: "VOTRE_STORAGE_BUCKET",
+            messagingSenderId: "VOTRE_MESSAGING_SENDER_ID",
+            appId: "VOTRE_APP_ID"
+        };
+
+        // Initialisation Firebase
+        let firebaseApp, database;
+        try {
+            firebaseApp = firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+        } catch (error) {
+            console.warn("Firebase non configuré. Mode local activé.");
+        }
+
+        let categories = [];
+        let currentRoomId = null;
+        let currentPlayerId = null;
+        let isHost = false;
+        let gameState = null;
+        let timerInterval = null;
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+        function generateRoomCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        function generatePlayerId() {
+            return 'player_' + Math.random().toString(36).substring(2, 11);
+        }
+
+        function addCategory() {
+            const input = document.getElementById('categoryInput');
+            const errorMsg = document.getElementById('errorMsg');
+            const category = input.value.trim();
+
+            if (!category) {
+                errorMsg.textContent = 'Veuillez entrer une catégorie';
+                return;
+            }
+
+            if (categories.includes(category)) {
+                errorMsg.textContent = 'Cette catégorie existe déjà';
+                return;
+            }
+
+            categories.push(category);
+            input.value = '';
+            errorMsg.textContent = '';
+            updateCategoriesList();
+        }
+
+        function updateCategoriesList() {
+            const list = document.getElementById('categoriesList');
+            list.innerHTML = categories.map((cat, index) => `
+                <div class="category-item">
+                    <span>${cat}</span>
+                    <button class="remove-btn" onclick="removeCategory(${index})">Supprimer</button>
+                </div>
+            `).join('');
+        }
+
+        function removeCategory(index) {
+            categories.splice(index, 1);
+            updateCategoriesList();
+        }
+
+        async function createRoom() {
+            const playerName = document.getElementById('playerName').value.trim();
+            
+            if (!playerName) {
+                alert('Veuillez entrer votre pseudo');
+                return;
+            }
+
+            if (categories.length === 0) {
+                alert('Veuillez ajouter au moins une catégorie');
+                return;
+            }
+
+            const timerDuration = parseInt(document.getElementById('timerDuration').value);
+            currentRoomId = generateRoomCode();
+            currentPlayerId = generatePlayerId();
+            isHost = true;
+
+            const roomData = {
+                hostId: currentPlayerId,
+                categories: categories,
+                timerDuration: timerDuration,
+                players: {
+                    [currentPlayerId]: {
+                        name: playerName,
+                        connected: true,
+                        score: 0
+                    }
+                },
+                gameStarted: false,
+                usedLetters: []
+            };
+
+            if (database) {
+                await database.ref('rooms/' + currentRoomId).set(roomData);
+                listenToRoom();
+            }
+
+            document.getElementById('roomCode').textContent = currentRoomId;
+            document.querySelector('.setup-section').classList.remove('active');
+            document.querySelector('.lobby-section').classList.add('active');
+            updatePlayersList();
+        }
+
+        function showJoinRoom() {
+            const roomCode = prompt('Entrez le code de la salle :');
+            if (!roomCode) return;
+
+            const playerName = document.getElementById('playerName').value.trim();
+            if (!playerName) {
+                alert('Veuillez entrer votre pseudo');
+                return;
+            }
+
+            joinRoom(roomCode.toUpperCase(), playerName);
+        }
+
+        async function joinRoom(roomCode, playerName) {
+            if (!database) {
+                alert('Firebase non configuré');
+                return;
+            }
+
+            const roomRef = database.ref('rooms/' + roomCode);
+            const snapshot = await roomRef.once('value');
+            
+            if (!snapshot.exists()) {
+                alert('Cette salle n\'existe pas');
+                return;
+            }
+
+            currentRoomId = roomCode;
+            currentPlayerId = generatePlayerId();
+            isHost = false;
+
+            await roomRef.child('players/' + currentPlayerId).set({
+                name: playerName,
+                connected: true,
+                score: 0
+            });
+
+            const roomData = snapshot.val();
+            categories = roomData.categories;
+
+            document.getElementById('roomCode').textContent = currentRoomId;
+            document.querySelector('.setup-section').classList.remove('active');
+            document.querySelector('.lobby-section').classList.add('active');
+            
+            listenToRoom();
+            updatePlayersList();
+        }
+
+        function listenToRoom() {
+            if (!database) return;
+
+            const roomRef = database.ref('rooms/' + currentRoomId);
+            
+            roomRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) {
+                    leaveRoom();
+                    return;
+                }
+
+                gameState = data;
+                updatePlayersList();
+
+                if (data.gameStarted && !document.querySelector('.game-section').classList.contains('active')) {
+                    showGameSection();
+                }
+
+                if (data.currentRound) {
+                    updateGameTable();
+                    updateTimer(data.currentRound.timeLeft);
+                    
+                    if (data.currentRound.stopped) {
+                        endRound();
+                    }
+                }
+            });
+        }
+
+        function updatePlayersList() {
+            if (!gameState || !gameState.players) return;
+
+            const players = Object.entries(gameState.players).filter(([id, player]) => player.connected);
+            document.getElementById('playerCount').textContent = players.length;
+            
+            const listHtml = players.map(([id, player]) => `
+                <div class="player-item">
+                    <div class="player-indicator"></div>
+                    <strong>${player.name}</strong> ${id === currentPlayerId ? '(Vous)' : ''}
+                    ${id === gameState.hostId ? '👑' : ''}
+                </div>
+            `).join('');
+            
+            document.getElementById('playersList').innerHTML = listHtml;
+        }
+
+        async function startGame() {
+            if (!isHost || !database) return;
+
+            const players = Object.entries(gameState.players).filter(([id, p]) => p.connected);
+            if (players.length < 2) {
+                alert('Il faut au moins 2 joueurs pour commencer');
+                return;
+            }
+
+            await drawNewLetter();
+        }
+
+        async function drawNewLetter() {
+            if (!isHost || !database) return;
+
+            const usedLetters = gameState.usedLetters || [];
+            const availableLetters = alphabet.filter(l => !usedLetters.includes(l));
+            
+            if (availableLetters.length === 0) {
+                alert('Toutes les lettres ont été utilisées !');
+                return;
+            }
+
+            const newLetter = availableLetters[Math.floor(Math.random() * availableLetters.length)];
+            
+            const roundData = {
+                letter: newLetter,
+                timeLeft: gameState.timerDuration,
+                startTime: Date.now(),
+                stopped: false,
+                answers: {}
+            };
+
+            await database.ref('rooms/' + currentRoomId).update({
+                gameStarted: true,
+                currentRound: roundData,
+                usedLetters: [...usedLetters, newLetter]
+            });
+
+            if (isHost) {
+                startTimerCountdown();
+            }
+        }
+
+        function showGameSection() {
+            document.querySelector('.lobby-section').classList.remove('active');
+            document.querySelector('.results-section').classList.remove('active');
+            document.querySelector('.game-section').classList.add('active');
+            
+            createGameTable();
+            animateLetter();
+        }
+
+        function animateLetter() {
+            const display = document.getElementById('letterDisplay');
+            let count = 0;
+            const animationInterval = setInterval(() => {
+                display.textContent = alphabet[Math.floor(Math.random() * alphabet.length)];
+                count++;
+                if (count >= 15) {
+                    clearInterval(animationInterval);
+                    display.textContent = gameState.currentRound.letter;
+                }
+            }, 100);
+        }
+
+        function createGameTable() {
+            const table = document.getElementById('gameTable');
+            const players = Object.entries(gameState.players).filter(([id, p]) => p.connected);
+            
+            let html = '<tr><th>Joueur</th>';
+            categories.forEach(cat => {
+                html += `<th>${cat}</th>`;
+            });
+            html += '<th>Points</th></tr>';
+
+            players.forEach(([playerId, player]) => {
+                const isMe = playerId === currentPlayerId;
+                html += `<tr class="player-row ${isMe ? 'my-row' : ''}">
+                    <td><strong>${player.name}</strong></td>`;
+                
+                categories.forEach((cat, cIndex) => {
+                    const answerId = `${playerId}-${cIndex}`;
+                    const answer = gameState.currentRound.answers && gameState.currentRound.answers[answerId] 
+                        ? gameState.currentRound.answers[answerId] : '';
+                    
+                    if (isMe) {
+                        html += `<td><input type="text" value="${answer}" 
+                                 onchange="saveAnswer(${cIndex}, this.value)"
+                                 ${gameState.currentRound.stopped ? 'disabled' : ''}></td>`;
+                    } else {
+                        html += `<td><input type="text" value="${answer}" disabled></td>`;
+                    }
+                });
+                
+                html += `<td class="score-cell">${player.score || 0}</td></tr>`;
+            });
+
+            table.innerHTML = html;
+        }
+
+        function updateGameTable() {
+            if (!gameState.currentRound) return;
+            
+            const players = Object.entries(gameState.players).filter(([id, p]) => p.connected);
+            
+            players.forEach(([playerId, player], pIndex) => {
+                categories.forEach((cat, cIndex) => {
+                    const answerId = `${playerId}-${cIndex}`;
+                    const answer = gameState.currentRound.answers && gameState.currentRound.answers[answerId] 
+                        ? gameState.currentRound.answers[answerId] : '';
+                    
+                    const inputs = document.querySelectorAll(`#gameTable tr:nth-child(${pIndex + 2}) td:nth-child(${cIndex + 2}) input`);
+                    if (inputs.length > 0 && playerId !== currentPlayerId) {
+                        inputs[0].value = answer;
+                    }
+                });
+                
+                const scoreCell = document.querySelector(`#gameTable tr:nth-child(${pIndex + 2}) .score-cell`);
+                if (scoreCell) {
+                    scoreCell.textContent = player.score || 0;
+                }
+            });
+        }
+
+        async function saveAnswer(categoryIndex, value) {
+            if (!database || !gameState.currentRound) return;
+
+            const answerId = `${currentPlayerId}-${categoryIndex}`;
+            await database.ref(`rooms/${currentRoomId}/currentRound/answers/${answerId}`).set(value.trim());
+        }
+
+        function startTimerCountdown() {
+            clearInterval(timerInterval);
+            
+            timerInterval = setInterval(async () => {
+                if (!gameState.currentRound || gameState.currentRound.stopped) {
+                    clearInterval(timerInterval);
+                    return;
+                }
+
+                const elapsed = Math.floor((Date.now() - gameState.currentRound.startTime) / 1000);
+                const timeLeft = gameState.timerDuration - elapsed;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    await stopGame();
+                } else {
+                    await database.ref(`rooms/${currentRoomId}/currentRound/timeLeft`).set(timeLeft);
+                }
+            }, 1000);
+        }
+
+        function updateTimer(timeLeft) {
+            const timerDisplay = document.getElementById('timer');
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timeLeft <= 10) {
+                timerDisplay.classList.add('warning');
+            } else {
+                timerDisplay.classList.remove('warning');
+            }
+        }
+
+        async function stopGame() {
+            if (!database) return;
+
+            await database.ref(`rooms/${currentRoomId}/currentRound/stopped`).set(true);
+            clearInterval(timerInterval);
+        }
+
+        async function endRound() {
+            if (!isHost) {
+                showResultsSection();
+                return;
+            }
+
+            // Calculer les scores
+            const players = Object.entries(gameState.players).filter(([id, p]) => p.connected);
+            const answers = gameState.currentRound.answers || {};
+
+            categories.forEach((cat, cIndex) => {
+                const categoryAnswers = {};
+                
+                // Compter les réponses
+                players.forEach(([playerId]) => {
+                    const answerId = `${playerId}-${cIndex}`;
+                    const answer = answers[answerId] || '';
+                    const normalizedAnswer = answer.toUpperCase().trim();
+                    
+                    if (normalizedAnswer && normalizedAnswer[0] === gameState.currentRound.letter) {
+                        categoryAnswers[normalizedAnswer] = (categoryAnswers[normalizedAnswer] || 0) + 1;
+                    }
+                });
+
+                // Attribuer les points
+                players.forEach(async ([playerId, player]) => {
+                    const answerId = `${playerId}-${cIndex}`;
+                    const answer = answers[answerId] || '';
+                    const normalizedAnswer = answer.toUpperCase().trim();
+                    
+                    if (normalizedAnswer && normalizedAnswer[0] === gameState.currentRound.letter) {
+                        const points = categoryAnswers[normalizedAnswer] === 1 ? 10 : 5;
+                        const newScore = (player.score || 0) + points;
+                        await database.ref(`rooms/${currentRoomId}/players/${playerId}/score`).set(newScore);
+                    }
+                });
+            });
+
+            setTimeout(() => showResultsSection(), 1000);
+        }
+
+        function showResultsSection() {
+            document.querySelector('.game-section').classList.remove('active');
+            document.querySelector('.results-section').classList.add('active');
+
+            const players = Object.entries(gameState.players)
+                .filter(([id, p]) => p.connected)
+                .sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+
+            const winner = players[0];
+            document.getElementById('winner').textContent = 
+                `🏆 ${winner[1].name} mène avec ${winner[1].score} points !`;
+
+            const resultsHTML = players.map(([id, player], index) => `
+                <div class="player-score">
+                    <span>${index + 1}. ${player.name} ${id === currentPlayerId ? '(Vous)' : ''}</span>
+                    <span>${player.score || 0} points</span>
+                </div>
+            `).join('');
+
+            document.getElementById('resultsTable').innerHTML = resultsHTML;
+        }
+
+        async function newRound() {
+            if (!isHost) return;
+            await drawNewLetter();
+        }
+
+        function copyRoomCode() {
+            const code = document.getElementById('roomCode').textContent;
+            navigator.clipboard.writeText(code);
+            alert('Code copié : ' + code);
+        }
+
+        async function leaveRoom() {
+            if (database && currentRoomId && currentPlayerId) {
+                await database.ref(`rooms/${currentRoomId}/players/${currentPlayerId}/connected`).set(false);
+                
+                if (isHost) {
+                    await database.ref(`rooms/${currentRoomId}`).remove();
+                }
+            }
+            
+            resetGame();
+        }
+
+        function resetGame() {
+            categories = [];
+            currentRoomId = null;
+            currentPlayerId = null;
+            isHost = false;
+            gameState = null;
+            clearInterval(timerInterval);
+
+            document.querySelector('.lobby-section').classList.remove('active');
+            document.querySelector('.game-section').classList.remove('active');
+            document.querySelector('.results-section').classList.remove('active');
+            document.querySelector('.setup-section').classList.add('active');
+
+            document.getElementById('categoryInput').value = '';
+            document.getElementById('playerName').value = '';
+            updateCategoriesList();
+        }
+
+        // Permettre d'ajouter une catégorie avec Entrée
+        document.getElementById('categoryInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addCategory();
+            }
+        });
+
+        // Déconnexion propre
+        window.addEventListener('beforeunload', () => {
+            if (database && currentRoomId && currentPlayerId) {
+                database.ref(`rooms/${currentRoomId}/players/${currentPlayerId}/connected`).set(false);
+            }
+        });
+    </script>
+</body>
+</html>

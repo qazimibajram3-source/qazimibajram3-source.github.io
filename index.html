@@ -25,9 +25,11 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
             padding: 40px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         h1 {
@@ -244,6 +246,129 @@
             padding: 20px 50px;
         }
 
+        /* Styles pour la validation */
+        .validation-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .validation-header {
+            background: #667eea;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .validation-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .validation-row.validated {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .validation-row.rejected {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .answer-info {
+            flex: 1;
+        }
+
+        .player-name-small {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .answer-text {
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .validation-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .validate-btn, .reject-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .validate-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .validate-btn:hover:not(:disabled) {
+            background: #218838;
+            transform: scale(1.05);
+        }
+
+        .reject-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .reject-btn:hover:not(:disabled) {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+
+        .validate-btn:disabled, .reject-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .validation-status {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .validation-progress {
+            background: #e9ecef;
+            height: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .validation-progress-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
         .results-grid {
             overflow-x: auto;
             margin: 20px 0;
@@ -274,6 +399,15 @@
 
         .points-badge {
             background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+
+        .invalid-badge {
+            background: #dc3545;
             color: white;
             padding: 2px 8px;
             border-radius: 12px;
@@ -383,6 +517,20 @@
             </div>
         </div>
 
+        <!-- Section Validation -->
+        <div class="section" id="validationSection">
+            <h2>✅ Validation des réponses</h2>
+            <div class="validation-status" id="validationStatus">
+                Validez ou refusez les réponses des autres joueurs
+            </div>
+            
+            <div class="validation-progress">
+                <div class="validation-progress-bar" id="validationProgress" style="width: 0%;">0%</div>
+            </div>
+
+            <div id="validationGrid"></div>
+        </div>
+
         <!-- Section Résultats -->
         <div class="section" id="resultsSection">
             <h2>🏆 Résultats de la manche</h2>
@@ -469,7 +617,6 @@
             `).join('');
         }
 
-        // CORRECTION IMPORTANTE: Utiliser set() au lieu de update() pour les tableaux
         async function saveMyAnswers() {
             try {
                 const myAnswers = [];
@@ -478,7 +625,6 @@
                     myAnswers.push(input ? input.value.trim() : '');
                 });
                 
-                // Utiliser set() au lieu de update() pour sauvegarder un tableau
                 await set(ref(database, `rooms/${currentRoomCode}/answers/${currentPlayerId}`), myAnswers);
                 console.log('✓ Réponses sauvegardées:', myAnswers);
             } catch (error) {
@@ -556,11 +702,121 @@
 
                 await new Promise(resolve => setTimeout(resolve, 1500));
 
-                await calculateAndShowResults(stoppedByName);
+                // Passer à la phase de validation au lieu des résultats
+                await startValidationPhase(stoppedByName);
             } catch (error) {
                 console.error('Erreur dans stopRound:', error);
             }
         }
+
+        async function startValidationPhase(stoppedByName) {
+            await update(roomRef, {
+                status: 'validation',
+                stoppedByName: stoppedByName,
+                validations: {}
+            });
+        }
+
+        function showValidationPhase(roomData) {
+            showSection('validationSection');
+            
+            const players = roomData.players;
+            const answers = roomData.answers || {};
+            const currentLetter = roomData.gameState.currentLetter;
+            const validations = roomData.validations || {};
+            const myValidations = validations[currentPlayerId] || {};
+
+            let html = '';
+
+            categories.forEach((cat, catIndex) => {
+                html += `<div class="validation-card">
+                    <div class="validation-header">${cat}</div>`;
+
+                Object.entries(answers).forEach(([playerId, playerAnswers]) => {
+                    if (playerId === currentPlayerId) return; // Ne pas valider ses propres réponses
+
+                    const answer = playerAnswers[catIndex] || '';
+                    const player = players[playerId];
+                    const validationKey = `${catIndex}_${playerId}`;
+                    const currentValidation = myValidations[validationKey];
+
+                    if (answer.trim()) {
+                        const validClass = currentValidation === true ? 'validated' : 
+                                         currentValidation === false ? 'rejected' : '';
+
+                        html += `
+                            <div class="validation-row ${validClass}">
+                                <div class="answer-info">
+                                    <div class="player-name-small">${player.name}</div>
+                                    <div class="answer-text">${answer}</div>
+                                </div>
+                                <div class="validation-buttons">
+                                    <button class="validate-btn" 
+                                            onclick="validateAnswer(${catIndex}, '${playerId}', true)"
+                                            ${currentValidation === true ? 'disabled' : ''}>
+                                        ✓ Valider
+                                    </button>
+                                    <button class="reject-btn" 
+                                            onclick="validateAnswer(${catIndex}, '${playerId}', false)"
+                                            ${currentValidation === false ? 'disabled' : ''}>
+                                        ✗ Refuser
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+
+                html += `</div>`;
+            });
+
+            document.getElementById('validationGrid').innerHTML = html;
+
+            // Mettre à jour la progression
+            updateValidationProgress(roomData);
+        }
+
+        function updateValidationProgress(roomData) {
+            const players = roomData.players;
+            const validations = roomData.validations || {};
+            const playerCount = Object.keys(players).length;
+            const validatedCount = Object.keys(validations).length;
+
+            const progress = (validatedCount / playerCount) * 100;
+            const progressBar = document.getElementById('validationProgress');
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = `${validatedCount}/${playerCount} joueurs ont voté`;
+
+            const statusDiv = document.getElementById('validationStatus');
+            if (validatedCount === playerCount) {
+                statusDiv.textContent = '✅ Tous les joueurs ont validé ! Calcul des résultats...';
+                statusDiv.style.background = '#d4edda';
+                statusDiv.style.color = '#155724';
+
+                // Si je suis l'hôte, calculer les résultats
+                if (isHost) {
+                    setTimeout(() => {
+                        calculateAndShowResults(roomData.stoppedByName);
+                    }, 2000);
+                }
+            } else {
+                statusDiv.textContent = `En attente de ${playerCount - validatedCount} joueur(s)...`;
+            }
+        }
+
+        window.validateAnswer = async function(catIndex, playerId, isValid) {
+            try {
+                const validationKey = `${catIndex}_${playerId}`;
+                
+                await update(ref(database, `rooms/${currentRoomCode}/validations/${currentPlayerId}`), {
+                    [validationKey]: isValid
+                });
+
+                console.log('✓ Validation enregistrée:', validationKey, isValid);
+            } catch (error) {
+                console.error('Erreur validation:', error);
+            }
+        };
 
         async function calculateAndShowResults(stoppedByName) {
             const roomSnapshot = await get(roomRef);
@@ -569,6 +825,7 @@
             const answers = roomData.answers || {};
             const currentLetter = roomData.gameState.currentLetter;
             const totalScores = roomData.scores || {};
+            const validations = roomData.validations || {};
 
             const roundScores = {};
             Object.keys(players).forEach(pid => {
@@ -580,15 +837,45 @@
             categories.forEach((cat, catIndex) => {
                 const categoryAnswers = {};
                 
+                // Collecter les réponses valides (commencent par la bonne lettre ET validées par les autres)
                 Object.entries(answers).forEach(([playerId, playerAnswers]) => {
                     const answer = (playerAnswers[catIndex] || '').toUpperCase();
+                    
                     if (answer && answer[0] === currentLetter) {
-                        categoryAnswers[playerId] = answer;
-                    } else {
-                        categoryAnswers[playerId] = '';
+                        // Vérifier les validations des autres joueurs
+                        const validationKey = `${catIndex}_${playerId}`;
+                        let validCount = 0;
+                        let totalVotes = 0;
+
+                        Object.entries(validations).forEach(([voterId, voterValidations]) => {
+                            if (voterId !== playerId && voterValidations[validationKey] !== undefined) {
+                                totalVotes++;
+                                if (voterValidations[validationKey] === true) {
+                                    validCount++;
+                                }
+                            }
+                        });
+
+                        // L'réponse est acceptée si majorité de votes positifs
+                        const isAccepted = totalVotes === 0 || (validCount > totalVotes / 2);
+                        
+                        if (isAccepted) {
+                            categoryAnswers[playerId] = answer;
+                        }
+
+                        // Stocker les infos de validation pour l'affichage
+                        if (!answerDetails[cat]) answerDetails[cat] = {};
+                        answerDetails[cat][playerId] = {
+                            answer: answer,
+                            points: 0,
+                            validated: isAccepted,
+                            validCount: validCount,
+                            totalVotes: totalVotes
+                        };
                     }
                 });
 
+                // Calculer les points pour les réponses validées
                 const answerCounts = {};
                 Object.values(categoryAnswers).forEach(answer => {
                     if (answer) {
@@ -601,17 +888,9 @@
                         const points = answerCounts[answer] === 1 ? 2 : 1;
                         roundScores[playerId] += points;
                         
-                        if (!answerDetails[cat]) answerDetails[cat] = {};
-                        answerDetails[cat][playerId] = {
-                            answer: answer,
-                            points: points
-                        };
-                    } else {
-                        if (!answerDetails[cat]) answerDetails[cat] = {};
-                        answerDetails[cat][playerId] = {
-                            answer: '',
-                            points: 0
-                        };
+                        if (answerDetails[cat] && answerDetails[cat][playerId]) {
+                            answerDetails[cat][playerId].points = points;
+                        }
                     }
                 });
             });
@@ -679,10 +958,17 @@
                         ${sortedPlayers.map(p => {
                             const data = categoryData[p.id];
                             if (data && data.answer) {
-                                return `<div class="results-cell">
-                                    ${data.answer}
-                                    <span class="points-badge">${data.points} pt${data.points > 1 ? 's' : ''}</span>
-                                </div>`;
+                                if (data.validated) {
+                                    return `<div class="results-cell">
+                                        ${data.answer}
+                                        <span class="points-badge">${data.points} pt${data.points > 1 ? 's' : ''}</span>
+                                    </div>`;
+                                } else {
+                                    return `<div class="results-cell">
+                                        <strike>${data.answer}</strike>
+                                        <span class="invalid-badge">Refusée</span>
+                                    </div>`;
+                                }
                             }
                             return `<div class="results-cell empty">-</div>`;
                         }).join('')}
@@ -754,6 +1040,10 @@
 
                 if (roomData.status === 'playing') {
                     updateGameState(roomData);
+                }
+
+                if (roomData.status === 'validation') {
+                    showValidationPhase(roomData);
                 }
 
                 if (roomData.status === 'results') {
@@ -976,6 +1266,7 @@
                     answers: {},
                     roundScores: {},
                     answerDetails: {},
+                    validations: {},
                     stoppedByName: null
                 });
             });
